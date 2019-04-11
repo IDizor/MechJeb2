@@ -344,6 +344,30 @@ namespace MuMech
             }
         }
 
+        public static void AlternateTextBox(string leftLabel, IEditable ed, string rightLabel = "", float leftwidth = 50, float textwidth = 75, float rightwidth = 20, bool editable = true)
+        {
+            string str = ed.text;
+            AlternateTextBox(leftLabel, ref str, rightLabel, leftwidth, textwidth, rightwidth, editable);
+            ed.text = str;
+        }
+
+        public static void AlternateTextBox(string leftLabel, string str, string rightLabel = "", float leftwidth = 50, float textwidth = 75, float rightwidth = 20)
+        {
+            AlternateTextBox(leftLabel, ref str, rightLabel, leftwidth, textwidth, rightwidth, false);
+        }
+
+        public static void AlternateTextBox(string leftLabel, ref string str, string rightLabel = "", float leftwidth = 50, float textwidth = 75, float rightwidth = 20, bool editable = true)
+        {
+            GUILayout.BeginHorizontal();
+            GUILayout.Label(leftLabel, GUILayout.ExpandWidth(false), GUILayout.Width(leftwidth));
+            if ( editable )
+                str = GUILayout.TextField(str, GUILayout.ExpandWidth(false), GUILayout.Width(textwidth));
+            else
+                GUILayout.TextField(str, GUILayout.ExpandWidth(false), GUILayout.Width(textwidth)); // FIXME: fade it
+            GUILayout.Label(rightLabel, GUILayout.ExpandWidth(false), GUILayout.Width(rightwidth));
+            GUILayout.EndHorizontal();
+        }
+
         public static void SimpleTextBox(string leftLabel, IEditable ed, string rightLabel = "", float width = 100, GUIStyle rightLabelStyle=null)
         {
             if (rightLabelStyle == null)
