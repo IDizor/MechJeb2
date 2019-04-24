@@ -478,6 +478,7 @@ namespace MuMech
         // below the current latitude.
         public double TimeToPlane(double LAN, double inc, double LANDifference)
         {
+            Debug.Log("LAN = " + LAN + " inc = " + inc + " LANDiff = " + LANDifference);
             // alpha is the 90 degrees angle between the line of longitude and the equator and omitted
             double beta = OrbitalManeuverCalculator.HeadingForInclination(inc, vesselState.latitude) * UtilMath.Deg2Rad;
             double c = vesselState.latitude * UtilMath.Deg2Rad;

@@ -560,12 +560,22 @@ namespace MuMech
                             {
                                 if ( ascentPathIdx == ascentType.PVG )
                                 {
+                                    double inclination = autopilot.desiredInclination;
+
+                                    if ( autopilot.desiredIncMode == 1 && core.target.NormalTargetExists )
+                                        inclination = core.target.TargetOrbit.inclination;
+
+                                    if ( autopilot.desiredIncMode == 2 )
+                                        inclination = vessel.orbit.inclination;
+
+                                    double LAN = autopilot.desiredLAN;
+
+                                    if ( autopilot.desiredLANMode == 1 && core.target.NormalTargetExists )
+                                        LAN = core.target.TargetOrbit.LAN;
+
                                     launchingToPlane = true;
                                     // FIXME: ask the guidance controller for a real solution or whatever
-                                    if ( autopilot.desiredLANMode == 1 )
-                                        autopilot.StartCountdown(vesselState.time + autopilot.MinimumTimeToPlane(core.target.TargetOrbit.LAN, core.target.TargetOrbit.inclination, autopilot.launchLANDifference));
-                                    else
-                                        autopilot.StartCountdown(vesselState.time + autopilot.MinimumTimeToPlane(autopilot.desiredLAN, autopilot.desiredInclination, autopilot.launchLANDifference));
+                                    autopilot.StartCountdown(vesselState.time + autopilot.MinimumTimeToPlane(LAN, inclination, 0));
                                 }
                                 else
                                 {

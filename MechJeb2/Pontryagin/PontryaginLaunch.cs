@@ -250,7 +250,7 @@ namespace MuMech {
             hT = -hT.xzy; // left handed coordinate system
             // FIXME: Vector3d.cross(n, hf) is the node vector pointing in LAN dir, another ArgPT rot around hT would give eT direction
             Vector3d right = new Vector3d(1, 0, 0);
-            Vector3d eT = Quaternion.Euler((float)LANT, (float)incT, (float)ArgPT) * right * (float) eccT;
+            Vector3d eT = Quaternion.Euler(0, (float)LANT,0) * Quaternion.Euler((float)incT, (float)ArgPT, 0) * right * (float) eccT;
 
             if (Math.Abs(hT[1]) <= 1e-6) // handle singularity
             {
