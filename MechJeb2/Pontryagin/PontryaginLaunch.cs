@@ -249,10 +249,17 @@ namespace MuMech {
             Vector3d hT = new Vector3d( Math.Sin(LANT) * Math.Sin(incT), -Math.Cos(LANT) * Math.Sin(incT), Math.Cos(incT) ) * Math.Sqrt(smaT * (1 - eccT*eccT));
             hT = -hT.xzy; // left handed coordinate system
             // FIXME: Vector3d.cross(n, hf) is the node vector pointing in LAN dir, another ArgPT rot around hT would give eT direction
-            Vector3d right = new Vector3d(1, 0, 0);
-            Vector3d eT = Quaternion.Euler(0, (float)LANT,0) * Quaternion.Euler((float)incT, (float)ArgPT, 0) * right * (float) eccT;
 
-            if (Math.Abs(hT[1]) <= 1e-6) // handle singularity
+            //Vector3d eT = QuaternionD.AngleAxis(-ArgPT * UtilMath.Rad2Deg, hf) * -Vector3d.cross(n, hf);
+
+            // This is the ZXZ intrinsic rotation, converting Vector3d.right (pointing at the periapsis) from the perifocal system.  Thus, the
+            // order of applying the angles is backwards.  However, the negative sign for the rotation angle is cancelled out by AngleAxis being
+            // a left-handed rotation, so the angles here are positive.  Argh.
+            //
+            Vector3d eT = QuaternionD.AngleAxis(LANT * UtilMath.Rad2Deg, Vector3d.forward) * QuaternionD.AngleAxis(incT * UtilMath.Rad2Deg, Vector3d.right) * QuaternionD.AngleAxis(ArgPT * UtilMath.Rad2Deg, Vector3d.forward) * Vector3d.right * eccT;
+            eT = eT.xzy;
+
+            if (Math.Abs(hT[1]) <= 1e-6) // handle 90 degree singularity
             {
                 rf = rf.Reorder(231);
                 vf = vf.Reorder(231);
@@ -263,11 +270,13 @@ namespace MuMech {
             }
 
             Vector3d hf = Vector3d.Cross(rf, vf);
-            Vector3d ef = - ( rf.normalized + Vector3d.Cross(hf, vf) );
+            Vector3d ef = Vector3d.Cross(vf, hf) - rf.normalized;
             Vector3d hmiss = hf - hT;
             Vector3d emiss = ef - eT;
             double trans = Vector3d.Dot(prf, vf) - Vector3d.Dot(pvf, rf) / ( rf.magnitude * rf.magnitude * rf.magnitude );
 
+            //Debug.Log("ef - eT = " + emiss);
+            //Debug.Log("eT dot hT ang = " + Math.Acos(Vector3d.Dot(eT.normalized, hT.normalized)) * UtilMath.Rad2Deg);
             if (!terminal)
             {
                 z[0] = hmiss[0];
