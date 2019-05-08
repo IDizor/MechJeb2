@@ -87,6 +87,9 @@ namespace MuMech
         [Persistent(pass = (int)(Pass.Type | Pass.Global))]
         public int desiredArgPMode = 2; // PVG only
         [Persistent(pass = (int)(Pass.Type | Pass.Global))]
+        public int timedAscentMode = 0; // 0 = NONE, 1 = PLANE, 2 = RENDEZVOUS, 3 = INTERPLANETARY
+
+        [Persistent(pass = (int)(Pass.Type | Pass.Global))]
         public bool autoThrottle = true;
         [Persistent(pass = (int)(Pass.Type | Pass.Global))]
         public bool correctiveSteering = false;
@@ -143,16 +146,6 @@ namespace MuMech
 
         [Persistent(pass = (int)(Pass.Global))]
         public EditableInt warpCountDown = 11;
-
-        [Persistent(pass = (int)(Pass.Global))]
-        public bool showSettings = true;
-        [Persistent(pass = (int)(Pass.Global))]
-        public bool showTargeting = true;
-        [Persistent(pass = (int)(Pass.Global))]
-        public bool showGuidanceSettings = true;
-        [Persistent(pass = (int)(Pass.Global))]
-        public bool showStatus = true;
-
 
         public bool timedLaunch = false;
         public double launchTime = 0;
@@ -237,11 +230,56 @@ namespace MuMech
             status = "Off";
         }
 
-        public void StartCountdown(double time)
+        public void StartCountdown()
         {
+            if ( timedAscentMode == 0 ) // none
+                return;
+
             timedLaunch = true;
-            launchTime = time;
             lastTMinus = 999;
+
+            // we update the desiredLAN/desiredInclination here and the AutopilotGuidance GUI should read it back off
+            // of here when that is appropriate.
+            //
+            if ( timedAscentMode == 1 ) { // plane
+                if ( ascentPathIdxPublic != ascentType.PVG )
+                {
+                    desiredInclination = MuUtils.Clamp(core.target.TargetOrbit.inclination, Math.Abs(vesselState.latitude), 180 - Math.Abs(vesselState.latitude));
+                    desiredInclination *=
+                        Math.Sign(Vector3d.Dot(core.target.TargetOrbit.SwappedOrbitNormal(),
+                                    Vector3d.Cross(vesselState.CoM - mainBody.position, mainBody.transform.up)));
+                    launchTime = vesselState.time + MinimumTimeToPlane(core.target.TargetOrbit.LAN, core.target.TargetOrbit.inclination, launchLANDifference);
+                }
+                else
+                {
+                    if ( desiredIncMode == 1 && core.target.NormalTargetExists ) // targ
+                    {
+                        desiredInclination = core.target.TargetOrbit.inclination;
+                    }
+                    else // current
+                    {
+                        desiredInclination = vessel.orbit.inclination;
+                    }
+                    if ( desiredLANMode == 1 && core.target.NormalTargetExists ) // targ
+                    {
+                        desiredLAN = core.target.TargetOrbit.LAN;
+                    }
+                    launchTime = vesselState.time + MinimumTimeToPlane(desiredLAN, desiredInclination, 0);
+                }
+            } else if ( timedAscentMode == 2 ) { // rendezvous
+                launchTime = vesselState.time + LaunchTiming.TimeToPhaseAngle(launchPhaseAngle,
+                            mainBody, vesselState.longitude, core.target.TargetOrbit);
+            } else if ( timedAscentMode == 3 ) { // interplanetary
+                //compute the desired launch date
+                OrbitalManeuverCalculator.DeltaVAndTimeForHohmannTransfer(
+                        mainBody.orbit, core.target.TargetOrbit, vesselState.time, out launchTime
+                        );
+                double desiredOrbitPeriod = 2 * Math.PI *
+                    Math.Sqrt( Math.Pow(mainBody.Radius + desiredOrbitAltitude, 3) / mainBody.gravParameter );
+                //launch just before the window, but don't try to launch in the past
+                launchTime -= 3*desiredOrbitPeriod;
+                launchTime = Math.Max(vesselState.time + warpCountDown, launchTime);
+            }
         }
 
         public override void OnFixedUpdate()
