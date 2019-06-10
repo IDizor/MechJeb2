@@ -44,28 +44,30 @@ namespace MuMech
         private MechJebModuleStageStats stats { get { return core.GetComputerModule<MechJebModuleStageStats>(); } }
         private FuelFlowSimulation.Stats[] atmoStats { get { return stats.atmoStats; } }
 
-        private ascentType ascentPathIdx { get { return autopilot.ascentPathIdxPublic; } }
-        private pvgTargetType pvgTargetIdx { get { return autopilot.pvgTargetIdxPublic; } }
+        private ascentType ascentPathIdx;
+        private pvgTargetType pvgTargetIdx;
 
         MechJebModuleAscentNavBall navBall;
 
         private void Apply()
         {
             // copy state to autopilot
-            autopilot.desiredOrbitAltitude = desiredOrbitAltitude;
-            autopilot.desiredAltitude = desiredAltitude;
-            autopilot.desiredPeriapsis = desiredPeriapsis;
-            autopilot.desiredApoapsis = desiredApoapsis;
-            autopilot.desiredSMA = desiredSMA;
-            autopilot.desiredECC = desiredECC;
-            autopilot.desiredFPA = desiredFPA;
-            autopilot.maxStages = maxStages;
+            autopilot.ascentPathIdxPublic = ascentPathIdx;
+            autopilot.pvgTargetIdxPublic = pvgTargetIdx;
+            autopilot.desiredOrbitAltitude = desiredOrbitAltitude.val;
+            autopilot.desiredAltitude = desiredAltitude.val;
+            autopilot.desiredPeriapsis = desiredPeriapsis.val;
+            autopilot.desiredApoapsis = desiredApoapsis.val;
+            autopilot.desiredSMA = desiredSMA.val;
+            autopilot.desiredECC = desiredECC.val;
+            autopilot.desiredFPA = desiredFPA.val;
+            autopilot.maxStages = maxStages.val;
             autopilot.desiredShapeMode = desiredShapeMode;
-            autopilot.desiredInclination = desiredInclination;
+            autopilot.desiredInclination = desiredInclination.val;
             autopilot.desiredIncMode = desiredIncMode;
-            autopilot.desiredLAN = desiredLAN;
+            autopilot.desiredLAN = desiredLAN.val;
             autopilot.desiredLANMode = desiredLANMode;
-            autopilot.desiredArgP = desiredArgP;
+            autopilot.desiredArgP = desiredArgP.val;
             autopilot.desiredArgPMode = desiredArgPMode;
             autopilot.timedAscentMode = timedAscentMode;
             autopilot.StartCountdown();
@@ -76,21 +78,24 @@ namespace MuMech
             if (autopilot != null)
             {
                 // copy state from autopilot
-                desiredOrbitAltitude = autopilot.desiredOrbitAltitude;
-                desiredAltitude = autopilot.desiredAltitude;
-                desiredPeriapsis = autopilot.desiredPeriapsis;
-                desiredApoapsis = autopilot.desiredApoapsis;
-                desiredSMA = autopilot.desiredSMA;
-                desiredECC = autopilot.desiredECC;
-                desiredFPA = autopilot.desiredFPA;
-                maxStages = maxStages;
+                ascentPathIdx = autopilot.ascentPathIdxPublic;
+                pvgTargetIdx = autopilot.pvgTargetIdxPublic;
+                desiredOrbitAltitude.val = autopilot.desiredOrbitAltitude;
+                desiredAltitude.val = autopilot.desiredAltitude;
+                desiredPeriapsis.val = autopilot.desiredPeriapsis;
+                desiredApoapsis.val = autopilot.desiredApoapsis;
+                desiredSMA.val = autopilot.desiredSMA;
+                desiredECC.val = autopilot.desiredECC;
+                desiredFPA.val = autopilot.desiredFPA;
+                maxStages.val = autopilot.maxStages;
                 desiredShapeMode = autopilot.desiredShapeMode;
-                desiredInclination = autopilot.desiredInclination;
+                desiredInclination.val = autopilot.desiredInclination;
                 desiredIncMode = autopilot.desiredIncMode;
-                desiredLAN = autopilot.desiredLAN;
+                desiredLAN.val = autopilot.desiredLAN;
                 desiredLANMode = autopilot.desiredLANMode;
-                desiredArgP = autopilot.desiredArgP;
+                desiredArgP.val = autopilot.desiredArgP;
                 desiredArgPMode = autopilot.desiredArgPMode;
+                timedAscentMode = autopilot.timedAscentMode;
             }
             navBall = core.GetComputerModule<MechJebModuleAscentNavBall>();
         }
@@ -119,6 +124,48 @@ namespace MuMech
             }
 
         public static GUIStyle btNormal, btActive;
+
+        public bool NeedsApply()
+        {
+            if ( ascentPathIdx != autopilot.ascentPathIdxPublic )
+                return true;
+            if ( pvgTargetIdx != autopilot.pvgTargetIdxPublic )
+                return true;
+            if ( desiredShapeMode != autopilot.desiredShapeMode )
+                return true;
+            if ( desiredIncMode != autopilot.desiredIncMode )
+                return true;
+            if ( desiredLANMode != autopilot.desiredLANMode )
+                return true;
+            if ( desiredArgPMode != autopilot.desiredArgPMode )
+                return true;
+            if ( desiredAltitude != autopilot.desiredAltitude )
+                return true;
+            if ( desiredOrbitAltitude != autopilot.desiredOrbitAltitude )
+                return true;
+            if ( desiredShapeMode == 0 && desiredPeriapsis != autopilot.desiredPeriapsis )
+                return true;
+            if ( desiredShapeMode == 0 && desiredApoapsis != autopilot.desiredApoapsis )
+                return true;
+            if ( desiredSMA != autopilot.desiredSMA )
+                return true;
+            if ( desiredECC != autopilot.desiredECC )
+                return true;
+            if ( desiredFPA != autopilot.desiredFPA )
+                return true;
+            if ( ( ascentPathIdx != ascentType.PVG || desiredIncMode == 0 ) && desiredInclination != autopilot.desiredInclination )
+                return true;
+            if ( desiredLANMode == 0 && desiredLAN != autopilot.desiredLAN )
+                return true;
+            if ( desiredArgPMode == 0 && desiredArgP != autopilot.desiredArgP )
+                return true;
+            if ( maxStages != autopilot.maxStages )
+                return true;
+            if ( timedAscentMode != autopilot.timedAscentMode )
+                return true;
+
+            return false;
+        }
 
         protected override void WindowGUI(int windowID)
         {
@@ -151,6 +198,8 @@ namespace MuMech
                 {
                     if (GUILayout.Button("Engage autopilot"))
                     {
+                        if (NeedsApply())
+                            Apply();
                         autopilot.users.Add(this);
                     }
                 }
@@ -206,12 +255,12 @@ namespace MuMech
                         int oldDesiredArgPMode = desiredArgPMode;
                         Orbit oldTarget = null;
 
-                        float gridWidth = 120;
+                        float gridWidth = 130;
                         float leftWidth = 35;
                         float textWidth = 65;
 
                         GUILayout.BeginHorizontal();
-                        autopilot.pvgTargetIdxPublic = (pvgTargetType)GuiUtils.ComboBox.Box((int)autopilot.pvgTargetIdxPublic, autopilot.pvgTargetList, this);
+                        pvgTargetIdx = (pvgTargetType)GuiUtils.ComboBox2.Box((int)pvgTargetIdx, autopilot.pvgTargetList, this);
                         GUILayout.EndHorizontal();
 
                         if (pvgTargetIdx == pvgTargetType.KEPLER_HUMAN || pvgTargetIdx == pvgTargetType.FLIGHTANGLE_HUMAN)
@@ -275,7 +324,7 @@ namespace MuMech
                         else if ( desiredIncMode == 2 ) // "free" is always just "current"
                             GuiUtils.AlternateTextBox("Inc:", vessel.orbit.inclination.ToString(), "º", leftWidth, textWidth);
                         else // manual
-                            GuiUtils.AlternateTextBox("Inc:", desiredInclination, "º", leftWidth, textWidth);
+                            GuiUtils.AlternateTextBox("Inc:", desiredInclination.text, "º", leftWidth, textWidth);
                         desiredIncMode = GUILayout.SelectionGrid(desiredIncMode, modeStringsINC, 3, btNormal, GUILayout.Width(gridWidth));
                         GUILayout.EndHorizontal();
 
@@ -304,10 +353,6 @@ namespace MuMech
                             GuiUtils.AlternateTextBox("Stages:", maxStages, "", 120, 75);
                             GUILayout.EndHorizontal();
                         }
-
-                        // disable "free" on the shape for now FIXME: buttons need to go away somehow
-                        if ( desiredShapeMode == 2 )
-                            desiredShapeMode = oldDesiredShapeMode;
 
                         // fix if someone tries to select target without a target or the target goes away
                         if ( !core.target.NormalTargetExists )
@@ -374,7 +419,6 @@ namespace MuMech
                         if (Math.Abs(desiredInclination) < Math.Abs(vesselState.latitude) - 2.001)
                             GUILayout.Label(String.Format("inc {0:F1}º below current latitude", Math.Abs(vesselState.latitude) - Math.Abs(desiredInclination)), si);
                         GUILayout.EndHorizontal();
-                        desiredInclination = desiredInclination;
                     }
                 }
 
@@ -426,7 +470,12 @@ namespace MuMech
                     }
                 }
 
-                if (GUILayout.Button("Apply"))
+                GUIStyle r = new GUIStyle(GUI.skin.button);
+
+                if ( NeedsApply() )
+                    r.onHover.textColor = r.normal.textColor = Color.red;
+
+                if (GUILayout.Button("Lock Guidance Target", r))
                 {
                     GUILayout.BeginHorizontal();
                     Apply();
@@ -631,6 +680,8 @@ namespace MuMech
                                     if (GUILayout.Button("Launch to rendezvous:", GUILayout.ExpandWidth(false)))
                                     {
                                         timedAscentMode = 2;
+                                        autopilot.timedAscentMode = timedAscentMode;
+                                        autopilot.StartCountdown();
                                     }
                                     autopilot.launchPhaseAngle.text = GUILayout.TextField(autopilot.launchPhaseAngle.text,
                                             GUILayout.Width(60));
@@ -641,6 +692,8 @@ namespace MuMech
                                     if (GUILayout.Button("Launch into plane of target", GUILayout.ExpandWidth(false)))
                                     {
                                         timedAscentMode = 1;
+                                        autopilot.timedAscentMode = timedAscentMode;
+                                        autopilot.StartCountdown();
                                     }
                                     autopilot.launchLANDifference.text = GUILayout.TextField(
                                             autopilot.launchLANDifference.text, GUILayout.Width(60));
@@ -652,6 +705,8 @@ namespace MuMech
                                         if (GUILayout.Button("Launch at interplanetary window"))
                                         {
                                             timedAscentMode = 3;
+                                            autopilot.timedAscentMode = timedAscentMode;
+                                            autopilot.StartCountdown();
                                         }
                                     }
                                 }
@@ -692,7 +747,10 @@ namespace MuMech
                             if ( ascentPathIdx != ascentType.PVG )
                             {
                                 if (GUILayout.Button("Abort"))
+                                {
                                      timedAscentMode = 0;
+                                     autopilot.timedAscentMode = timedAscentMode;
+                                }
                             }
                         }
                 }
@@ -709,7 +767,7 @@ namespace MuMech
             }
 
             GUILayout.BeginHorizontal();
-            autopilot.ascentPathIdxPublic = (ascentType)GuiUtils.ComboBox.Box((int)autopilot.ascentPathIdxPublic, autopilot.ascentPathList, this);
+            ascentPathIdx = (ascentType)GuiUtils.ComboBox.Box((int)ascentPathIdx, autopilot.ascentPathList, this);
             GUILayout.EndHorizontal();
 
             if (autopilot.ascentMenu != null) autopilot.ascentMenu.enabled = GUILayout.Toggle(autopilot.ascentMenu.enabled, "Edit ascent path");

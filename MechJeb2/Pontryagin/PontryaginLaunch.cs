@@ -275,8 +275,8 @@ namespace MuMech {
             Vector3d emiss = ef - eT;
             double trans = Vector3d.Dot(prf, vf) - Vector3d.Dot(pvf, rf) / ( rf.magnitude * rf.magnitude * rf.magnitude );
 
-            //Debug.Log("ef - eT = " + emiss);
-            //Debug.Log("eT dot hT ang = " + Math.Acos(Vector3d.Dot(eT.normalized, hT.normalized)) * UtilMath.Rad2Deg);
+            //"ef - eT = " + emiss);
+            //"eT dot hT ang = " + Math.Acos(Vector3d.Dot(eT.normalized, hT.normalized)) * UtilMath.Rad2Deg);
             if (!terminal)
             {
                 z[0] = hmiss[0];
@@ -473,6 +473,7 @@ namespace MuMech {
                 multipleIntegrate(y0, new_sol, arcs, 10);
 
                 double coastlen = new_sol.tgo(new_sol.t0, arcs.Count-2); // human seconds
+                double coast_time = y0[arcIndex(arcs, arcs.Count-2, parameters: true)]; // normalized units
 
                 if ( coastlen < 1 )
                 {
@@ -482,10 +483,23 @@ namespace MuMech {
 
                     if ( !runOptimizer(arcs) )
                     {
-                        Fatal("failed to converge after removing negative length coast after jettison");
+                        Fatal("Optimizer exploded after removing negative coast (weird)");
                         return;
                     }
-
+                }
+                else if ( coast_time > Math.PI / 3.0 ) // 60 degrees
+                {
+                    DebugLog("optimium coast exceeded maximum normalized time (roughly 1/4 of an arc around the planet) and was truncated.  maybe whack that RESET button to try again later (but thrust must be ON).");
+                    arcs[arcs.Count-2].use_fixed_time2 = true;
+                    arcs[arcs.Count-2].fixed_time = Math.PI / 3.0 * t_scale;
+                    arcs[arcs.Count-2].fixed_tbar = Math.PI / 3.0;
+                    y0[arcIndex(arcs, arcs.Count-2, parameters: true)] = Math.PI / 3.0;
+                    if ( !runOptimizer(arcs) )
+                    {
+                        Fatal("Optimizer exploded after truncating long coast (weird)");
+                        y0 = null;
+                        return;
+                    }
                 }
             }
 

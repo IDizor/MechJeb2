@@ -57,33 +57,33 @@ namespace MuMech
         }
 
         [Persistent(pass = (int)(Pass.Type | Pass.Global))]
-        public EditableDoubleMult desiredOrbitAltitude = new EditableDoubleMult(100000, 1000); // Classic+GT only
+        public double desiredOrbitAltitude = 100000; // Classic+GT
         [Persistent(pass = (int)(Pass.Type | Pass.Global))]
-        public EditableDoubleMult desiredAltitude = new EditableDoubleMult(100000, 1000); // PVG only
+        public double desiredAltitude = 185000; // PVG only
         [Persistent(pass = (int)(Pass.Type | Pass.Global))]
-        public EditableDoubleMult desiredPeriapsis = new EditableDoubleMult(100000, 1000); // PVG only
+        public double desiredPeriapsis = 185000; // PVG only
         [Persistent(pass = (int)(Pass.Type | Pass.Global))]
-        public EditableDoubleMult desiredApoapsis = new EditableDoubleMult(100000, 1000); // PVG only
+        public double desiredApoapsis = 0; // PVG only
         [Persistent(pass = (int)(Pass.Type | Pass.Global))]
-        public EditableDoubleMult desiredSMA = new EditableDoubleMult(100000, 1000); // PVG only
+        public double desiredSMA = 6556000; // PVG only
         [Persistent(pass = (int)(Pass.Type | Pass.Global))]
-        public EditableDoubleMult desiredECC = new EditableDouble(0); // PVG only
+        public double desiredECC = 0; // PVG only
         [Persistent(pass = (int)(Pass.Type | Pass.Global))]
-        public EditableDoubleMult desiredFPA = new EditableDouble(0); // PVG only
+        public double desiredFPA = 0; // PVG only
         [Persistent(pass = (int)(Pass.Type | Pass.Global))]
-        public EditableInt maxStages = 2; // PVG only
+        public int maxStages = 2; // PVG only
         [Persistent(pass = (int)(Pass.Type | Pass.Global))]
         public int desiredShapeMode = 0; // PVG only
         [Persistent(pass = (int)(Pass.Type | Pass.Global))]
-        public EditableDouble desiredInclination = new EditableDouble(0); // Classic+GT+PVG
+        public double desiredInclination = 0; // Classic+GT+PVG
         [Persistent(pass = (int)(Pass.Type | Pass.Global))]
         public int desiredIncMode = 0; // PVG only
         [Persistent(pass = (int)(Pass.Type | Pass.Global))]
-        public EditableDouble desiredLAN = new EditableDouble(0); // PVG only
+        public double desiredLAN = 0; // PVG only
         [Persistent(pass = (int)(Pass.Type | Pass.Global))]
         public int desiredLANMode = 2; // PVG only
         [Persistent(pass = (int)(Pass.Type | Pass.Global))]
-        public EditableDouble desiredArgP = new EditableDouble(0); // PVG only
+        public double desiredArgP = 0; // PVG only
         [Persistent(pass = (int)(Pass.Type | Pass.Global))]
         public int desiredArgPMode = 2; // PVG only
         [Persistent(pass = (int)(Pass.Type | Pass.Global))]
@@ -256,7 +256,7 @@ namespace MuMech
                     {
                         desiredInclination = core.target.TargetOrbit.inclination;
                     }
-                    else // current
+                    else if ( desiredIncMode == 2 ) // current
                     {
                         desiredInclination = vessel.orbit.inclination;
                     }
@@ -264,6 +264,7 @@ namespace MuMech
                     {
                         desiredLAN = core.target.TargetOrbit.LAN;
                     }
+                    // desiredLANMode == 2 should never happen here
                     launchTime = vesselState.time + MinimumTimeToPlane(desiredLAN, desiredInclination, 0);
                 }
             } else if ( timedAscentMode == 2 ) { // rendezvous
